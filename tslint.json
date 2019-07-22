@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
+  "rules": {
+    "interface-name": false,
+      "ordered-imports": {
+        "options": {
+          "grouped-imports": true,
+          "named-imports-order": "case-insensitive",
+          "import-sources-order": "case-insensitive"
+        }
+      },
+    "no-console": false,
+    "no-implicit-dependencies": true,
+    "no-submodule-imports": [false],
+    "semicolon": [true, "never"]
+  }
+}

@@ -14,10 +14,14 @@ export default class FileDownload implements FileTransferInterface {
 
   public constructor(
     s3: AWS.S3,
-    bucketName: string,
-    s3Object: AWS.S3.Object,
+    options: {
+      bucketName: string
+      s3Object: AWS.S3.Object
+    },
     fs: typeof fsExtra
   ) {
+    const { bucketName, s3Object } = options
+
     this.s3Object = s3Object
     this.bucketName = bucketName
     this.downloadRequest = s3.getObject({

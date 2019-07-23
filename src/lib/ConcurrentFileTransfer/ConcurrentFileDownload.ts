@@ -18,11 +18,15 @@ export default class ConcurrentFileDownload
 
   public constructor(
     s3: AWS.S3,
-    bucketName: string,
-    s3Objects: AWS.S3.Object[],
-    fs: typeof fsExtra,
-    maxConcurrentDownloads: number = 4
+    options: {
+      bucketName: string
+      s3Objects: AWS.S3.Object[]
+      maxConcurrentDownloads?: number
+    },
+    fs: typeof fsExtra
   ) {
+    const { bucketName, s3Objects, maxConcurrentDownloads = 4 } = options
+
     this.s3 = s3
     this.bucketName = bucketName
     this.s3Objects = [...s3Objects]
@@ -35,12 +39,12 @@ export default class ConcurrentFileDownload
 
     return Promise.all(
       this.s3Objects.map((s3Object) => {
-        const fileDownload = new FileDownload(
-          this.s3,
-          this.bucketName,
-          s3Object,
-          this.fs
-        )
+        const options = {
+          bucketName: this.bucketName,
+          s3Object
+        }
+
+        const fileDownload = new FileDownload(this.s3, options, this.fs)
 
         return limit(
           () =>

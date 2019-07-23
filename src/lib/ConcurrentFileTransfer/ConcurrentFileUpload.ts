@@ -10,7 +10,7 @@ import { ConcurrentFileTransferInterface } from './'
 export default class ConcurrentFileUpload
   implements ConcurrentFileTransferInterface {
   private s3: AWS.S3
-  private bucketName: string
+  private destBucketName: string
   private srcDirectory: string
   private kmsKeyId: string
   private fs: typeof fsExtra
@@ -22,20 +22,29 @@ export default class ConcurrentFileUpload
 
   public constructor(
     s3: AWS.S3,
-    bucketName: string,
-    srcDirectory: string,
-    kmsKeyId: string,
+    options: {
+      destBucketName: string
+      srcDirectory: string
+      kmsKeyId: string
+      maxConcurrentUploads?: number
+    },
     fs: typeof fsExtra,
-    glob: typeof globLib,
-    maxConcurrentUploads: number = 4
+    glob: typeof globLib
   ) {
+    const {
+      destBucketName,
+      srcDirectory,
+      kmsKeyId,
+      maxConcurrentUploads = 4
+    } = options
+
     this.s3 = s3
-    this.bucketName = bucketName
+    this.destBucketName = destBucketName
     this.srcDirectory = srcDirectory
     this.kmsKeyId = kmsKeyId
+    this.maxConcurrentUploads = maxConcurrentUploads
     this.fs = fs
     this.glob = glob
-    this.maxConcurrentUploads = maxConcurrentUploads
   }
 
   public start = async (): Promise<void[]> => {
@@ -45,16 +54,16 @@ export default class ConcurrentFileUpload
 
     return Promise.all(
       srcFilePaths.map((srcFilePath) => {
-        const fileUpload = new FileUpload(
-          this.s3,
-          this.bucketName,
-          srcFilePath,
-          srcFilePath.substring(
+        const options = {
+          destBucketName: this.destBucketName,
+          destFilePath: srcFilePath.substring(
             `${config.downloadPath}/${this.srcDirectory}/`.length
           ),
-          this.kmsKeyId,
-          this.fs
-        )
+          kmsKeyId: this.kmsKeyId,
+          srcFilePath
+        }
+
+        const fileUpload = new FileUpload(this.s3, options, this.fs)
 
         return limit(
           () =>

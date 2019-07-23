@@ -9,12 +9,16 @@ export default class FileUpload implements FileTransferInterface {
 
   public constructor(
     s3: AWS.S3,
-    bucketName: string,
-    srcFilePath: string,
-    destFilePath: string,
-    kmsKeyId: string,
+    options: {
+      destBucketName: string
+      srcFilePath: string
+      destFilePath: string
+      kmsKeyId: string
+    },
     fs: typeof fsExtra
   ) {
+    const { destBucketName, srcFilePath, destFilePath, kmsKeyId } = options
+
     this.uploadRequestPromise = new Promise(async (resolve) => {
       const data = await fs.readFile(srcFilePath)
 
@@ -22,7 +26,7 @@ export default class FileUpload implements FileTransferInterface {
         s3.upload({
           ACL: 'public-read',
           Body: data,
-          Bucket: bucketName,
+          Bucket: destBucketName,
           Key: destFilePath,
           // https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html#API_Encrypt_RequestSyntax
           SSEKMSKeyId: kmsKeyId,

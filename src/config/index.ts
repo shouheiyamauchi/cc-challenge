@@ -1,3 +1,3 @@
 export default {
-  downloadPath: './downloads'
+  downloadPath: './downloads/'
 }

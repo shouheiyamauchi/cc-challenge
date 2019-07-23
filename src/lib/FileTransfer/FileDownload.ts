@@ -1,40 +1,37 @@
 import AWS from 'aws-sdk'
-import fs from 'fs-extra'
+import fsExtra from 'fs-extra'
 
-interface FileDownloadInterface {
-  start: () => Promise<void>
-  getStats: () => {
-    bytesLoaded: number
-    progress: number
-    totalSize: number
-  }
-}
+import config from '../../config'
 
-export default class FileDownload implements FileDownloadInterface {
+import { FileTransferInterface } from './'
+
+export default class FileDownload implements FileTransferInterface {
   private s3Object: AWS.S3.Object
-  private destinationPrefix: string
+  private bucketName: string
   private downloadRequest: AWS.Request<AWS.S3.GetObjectOutput, AWS.AWSError>
   private bytesLoaded = 0
+  private fs: typeof fsExtra
 
   public constructor(
     s3: AWS.S3,
-    s3Object: AWS.S3.Object,
     bucketName: string,
-    destinationPrefix: string
+    s3Object: AWS.S3.Object,
+    fs: typeof fsExtra
   ) {
     this.s3Object = s3Object
-    this.destinationPrefix = destinationPrefix
+    this.bucketName = bucketName
     this.downloadRequest = s3.getObject({
       Bucket: bucketName,
       Key: s3Object.Key
     })
+    this.fs = fs
   }
 
   public start = async (): Promise<void> => {
     const filePath = this.s3Object.Key
     const directoryPath = filePath.substring(0, filePath.lastIndexOf('/'))
     // create folder structure if it doesn't exist
-    await fs.ensureDir(this.destinationPrefix + directoryPath)
+    await this.fs.ensureDir(`${config.downloadPath}${this.bucketName}/${directoryPath}`)
 
     const stream = this.downloadRequest.createReadStream()
 
@@ -42,7 +39,7 @@ export default class FileDownload implements FileDownloadInterface {
       this.bytesLoaded += chunk.length
     })
 
-    stream.pipe(fs.createWriteStream(this.destinationPrefix + filePath))
+    stream.pipe(this.fs.createWriteStream(`${config.downloadPath}${this.bucketName}/${filePath}`))
 
     return new Promise((resolve) => {
       stream.on('finish', () => resolve())
@@ -51,7 +48,7 @@ export default class FileDownload implements FileDownloadInterface {
 
   public getStats = () => ({
     bytesLoaded: this.bytesLoaded,
-    progress: (this.bytesLoaded / this.s3Object.Size) * 100,
+    percentProgress: (this.bytesLoaded / this.s3Object.Size) * 100,
     totalSize: this.s3Object.Size
   })
 }

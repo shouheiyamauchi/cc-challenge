@@ -12,8 +12,7 @@ export const getAllBucketContents = async (s3: AWS.S3, bucketName: string) => {
     > = await s3
       .listObjectsV2({
         Bucket: bucketName,
-        ContinuationToken: nextContinuationToken,
-        MaxKeys: 1
+        ContinuationToken: nextContinuationToken
       })
       .promise()
 

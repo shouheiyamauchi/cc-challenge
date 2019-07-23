@@ -10,7 +10,8 @@
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "prettier": "prettier src/**/*.ts",
     "prettier:fix": "npm run prettier -- --write",
-    "test": "nyc mocha --exit"
+    "test": "mocha --exit",
+    "test:coverage": "nyc npm run test"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

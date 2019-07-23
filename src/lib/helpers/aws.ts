@@ -1,9 +1,9 @@
-import AWS from "aws-sdk";
-import { PromiseResult } from "aws-sdk/lib/request";
+import AWS from 'aws-sdk'
+import { PromiseResult } from 'aws-sdk/lib/request'
 
 export const getAllBucketContents = async (s3: AWS.S3, bucketName: string) => {
-  let contents: AWS.S3.Object[] = [];
-  let nextContinuationToken;
+  let contents: AWS.S3.Object[] = []
+  let nextContinuationToken
 
   while (true) {
     const listObjectsOutput: PromiseResult<
@@ -15,13 +15,13 @@ export const getAllBucketContents = async (s3: AWS.S3, bucketName: string) => {
         ContinuationToken: nextContinuationToken,
         MaxKeys: 1
       })
-      .promise();
+      .promise()
 
-    contents = [...contents, ...listObjectsOutput.Contents];
-    nextContinuationToken = listObjectsOutput.NextContinuationToken;
+    contents = [...contents, ...listObjectsOutput.Contents]
+    nextContinuationToken = listObjectsOutput.NextContinuationToken
 
     if (!nextContinuationToken) {
-      return contents;
+      return contents
     }
   }
-};
+}

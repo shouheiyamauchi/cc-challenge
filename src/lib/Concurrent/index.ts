@@ -1,3 +1,3 @@
 export interface ConcurrentInterface {
-  start: () => Promise<void>;
+  start: () => Promise<void>
 }

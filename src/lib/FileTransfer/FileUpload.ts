@@ -1,4 +1,3 @@
-import AWS from 'aws-sdk'
 import fsExtra from 'fs-extra'
 
 import { FileTransferInterface } from './'
@@ -11,33 +10,33 @@ export default class FileUpload implements FileTransferInterface {
   public constructor(
     s3: AWS.S3,
     bucketName: string,
-    filePath: string,
+    srcFilePath: string,
+    destFilePath: string,
     kmsKeyId: string,
     fs: typeof fsExtra
   ) {
     this.uploadRequestPromise = new Promise(async (resolve) => {
-      const data = await fs.readFile(filePath)
+      const data = await fs.readFile(srcFilePath)
 
       resolve(
         s3.upload({
           ACL: 'public-read',
           Body: data,
           Bucket: bucketName,
-          Key: filePath,
+          Key: destFilePath,
           // https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html#API_Encrypt_RequestSyntax
           SSEKMSKeyId: kmsKeyId,
           ServerSideEncryption: 'aws:kms'
         })
       )
     })
-    this.totalSize = fs.statSync(filePath).size
+    this.totalSize = fs.statSync(srcFilePath).size
   }
 
   public start = async (): Promise<void> => {
     const uploadRequest = await this.uploadRequestPromise
 
     uploadRequest.on('httpUploadProgress', (progress) => {
-      console.log(progress)
       this.bytesLoaded = progress.loaded
     })
 

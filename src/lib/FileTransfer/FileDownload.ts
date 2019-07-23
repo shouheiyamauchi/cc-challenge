@@ -31,7 +31,9 @@ export default class FileDownload implements FileTransferInterface {
     const filePath = this.s3Object.Key
     const directoryPath = filePath.substring(0, filePath.lastIndexOf('/'))
     // create folder structure if it doesn't exist
-    await this.fs.ensureDir(`${config.downloadPath}${this.bucketName}/${directoryPath}`)
+    await this.fs.ensureDir(
+      `${config.downloadPath}/${this.bucketName}/${directoryPath}`
+    )
 
     const stream = this.downloadRequest.createReadStream()
 
@@ -39,7 +41,11 @@ export default class FileDownload implements FileTransferInterface {
       this.bytesLoaded += chunk.length
     })
 
-    stream.pipe(this.fs.createWriteStream(`${config.downloadPath}${this.bucketName}/${filePath}`))
+    stream.pipe(
+      this.fs.createWriteStream(
+        `${config.downloadPath}/${this.bucketName}/${filePath}`
+      )
+    )
 
     return new Promise((resolve) => {
       stream.on('finish', () => resolve())

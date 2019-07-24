@@ -1,9 +1,10 @@
 import fsExtra from 'fs-extra'
 import pLimit from 'p-limit'
 
+import config from '../../config'
 import FileDownload from '../FileTransfer/FileDownload'
 
-import { ConcurrentFileTransferInterface } from './'
+import { ConcurrentFileTransferInterface, CurrentFileTransferStats } from './'
 
 export default class ConcurrentFileDownload
   implements ConcurrentFileTransferInterface {
@@ -25,7 +26,11 @@ export default class ConcurrentFileDownload
     },
     fs: typeof fsExtra
   ) {
-    const { bucketName, s3Objects, maxConcurrentDownloads = 4 } = options
+    const {
+      bucketName,
+      s3Objects,
+      maxConcurrentDownloads = config.defaultConcurrentDownloads
+    } = options
 
     this.s3 = s3
     this.bucketName = bucketName
@@ -60,6 +65,12 @@ export default class ConcurrentFileDownload
   }
 
   public getStats = () => {
-    return Object.keys(this.activeDownloads).length
+    const stats: CurrentFileTransferStats = {}
+
+    for (const key of Object.keys(this.activeDownloads)) {
+      stats[key] = this.activeDownloads[key].getStats()
+    }
+
+    return stats
   }
 }

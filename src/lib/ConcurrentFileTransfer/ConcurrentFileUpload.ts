@@ -5,7 +5,7 @@ import pLimit from 'p-limit'
 import config from '../../config'
 import FileUpload from '../FileTransfer/FileUpload'
 
-import { ConcurrentFileTransferInterface } from './'
+import { ConcurrentFileTransferInterface, CurrentFileTransferStats } from './'
 
 export default class ConcurrentFileUpload
   implements ConcurrentFileTransferInterface {
@@ -35,7 +35,7 @@ export default class ConcurrentFileUpload
       destBucketName,
       srcDirectory,
       kmsKeyId,
-      maxConcurrentUploads = 4
+      maxConcurrentUploads = config.defaultConcurrentUploads
     } = options
 
     this.s3 = s3
@@ -79,7 +79,13 @@ export default class ConcurrentFileUpload
   }
 
   public getStats = () => {
-    return Object.keys(this.activeUploads).length
+    const stats: CurrentFileTransferStats = {}
+
+    for (const key of Object.keys(this.activeUploads)) {
+      stats[key] = this.activeUploads[key].getStats()
+    }
+
+    return stats
   }
 
   private getSrcFilePaths = async (): Promise<string[]> => {

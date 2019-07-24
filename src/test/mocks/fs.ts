@@ -4,5 +4,9 @@ export default {
   },
   ensureDir: () => {
     // mock
-  }
+  },
+  readFile: async () => {
+    // mock
+  },
+  statSync: (file: { size: number }) => file
 }

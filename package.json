@@ -30,7 +30,7 @@
       "src/**/*.ts"
     ],
     "exclude": [
-      "src/test/**/*.test.ts"
+      "src/test/**/*.ts"
     ],
     "extension": [
       ".ts"
@@ -38,8 +38,7 @@
     "require": [
       "ts-node/register"
     ],
-    "sourceMap": true,
-    "instrument": true
+    "all": true
   },
   "dependencies": {
     "aws-sdk": "^2.496.0",

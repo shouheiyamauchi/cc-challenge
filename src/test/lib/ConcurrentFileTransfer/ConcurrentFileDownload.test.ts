@@ -4,21 +4,19 @@ import chaiAsPromised from 'chai-as-promised'
 import ConcurrentFileDownload from '../../../lib/ConcurrentFileTransfer/ConcurrentFileDownload'
 import { flushAsyncFn } from '../../helpers/promise'
 import fsMock from '../../mocks/fs'
-import S3Mock, { mockObjectId } from '../../mocks/S3'
+import S3Mock, { mockS3RequestId } from '../../mocks/S3'
 
 chai.use(chaiAsPromised)
 
 describe('ConcurrentFileDownload', () => {
   describe('without maxConcurrentDownloads option', () => {
     let s3: S3Mock
-    let bucketName: string
-    let keys: string[]
     let concurrentFileDownload: ConcurrentFileDownload
+    const bucketName = 'mockBucket'
+    const keys = ['1', '2', '3', '4', '5']
 
     beforeEach(() => {
       s3 = new S3Mock()
-      bucketName = 'mockBucket'
-      keys = ['1', '2', '3', '4', '5']
       const s3Objects = keys.map((key) => ({
         Key: key,
         Size: 1000
@@ -51,7 +49,7 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '1'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '1'), 'finish')
 
       await flushAsyncFn()
 
@@ -68,7 +66,7 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '3'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '3'), 'finish')
 
       await flushAsyncFn()
 
@@ -85,15 +83,15 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '1'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '1'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '2'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '2'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '3'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '3'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '4'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '4'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '5'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '5'), 'finish')
 
       await flushAsyncFn()
 
@@ -109,15 +107,13 @@ describe('ConcurrentFileDownload', () => {
 
   describe('with maxConcurrentDownloads option', () => {
     let s3: S3Mock
-    let bucketName: string
-    let keys: string[]
     let concurrentFileDownload: ConcurrentFileDownload
+    const bucketName = 'mockBucket'
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8']
     const maxConcurrentDownloads = 5
 
     beforeEach(() => {
       s3 = new S3Mock()
-      bucketName = 'mockBucket'
-      keys = ['1', '2', '3', '4', '5', '6', '7', '8']
       const s3Objects = keys.map((key) => ({
         Key: key,
         Size: 1000
@@ -154,7 +150,7 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '1'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '1'), 'finish')
 
       await flushAsyncFn()
 
@@ -174,7 +170,7 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '3'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '3'), 'finish')
 
       await flushAsyncFn()
 
@@ -194,21 +190,21 @@ describe('ConcurrentFileDownload', () => {
       concurrentFileDownload.start()
 
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '1'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '1'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '2'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '2'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '3'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '3'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '4'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '4'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '5'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '5'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '6'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '6'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '7'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '7'), 'finish')
       await flushAsyncFn()
-      s3.emitReadStreamEvent(mockObjectId(bucketName, '8'), 'finish')
+      s3.emitReadStreamEvent(mockS3RequestId(bucketName, '8'), 'finish')
 
       await flushAsyncFn()
 

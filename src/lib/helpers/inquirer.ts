@@ -1,4 +1,7 @@
+import fs from 'fs-extra'
 import inquirer from 'inquirer'
+
+import config from '../../config'
 
 export const promptOptions = (choices: string[]) =>
   inquirer.prompt<{
@@ -63,7 +66,14 @@ export const getDownloadbucketName = () =>
         'Please enter the name of the S3 bucket you would like to download',
       name: 'bucketName',
       type: 'input',
-      validate: (value) => Boolean(value) || 'Bucket name is required'
+      validate: async (value) => {
+        if (!value) {
+          return 'Bucket name is required'
+        }
+        return (await fs.pathExists(`${config.downloadPath}/${value}`))
+          ? 'You must remove the already existing folder'
+          : true
+      }
     }
   ])
 
@@ -88,7 +98,14 @@ export const getUploadSrcDirectory = () =>
         'Please enter the name of the directory in the downloads folder you would like to upload',
       name: 'srcDirectory',
       type: 'input',
-      validate: (value) => Boolean(value) || 'Source directory is required'
+      validate: async (value) => {
+        if (!value) {
+          return 'Directory name is required'
+        }
+        return (await fs.pathExists(`${config.downloadPath}/${value}`))
+          ? true
+          : 'Directory does not exist'
+      }
     }
   ])
 

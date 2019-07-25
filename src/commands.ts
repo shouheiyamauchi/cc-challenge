@@ -4,7 +4,11 @@ import glob from 'glob'
 import logUpdate from 'log-update'
 
 import config from './config'
-import sessionValues from './config/sessionValues'
+import sessionValues, {
+  resetAwsCredentials,
+  resetDownloadOptions,
+  resetUploadOptions
+} from './config/sessionValues'
 import ConcurrentFileTransfer, {
   displayProgress,
   generateFileDownloadObjects,
@@ -32,6 +36,9 @@ export const start = async () => {
       try {
         await downloadS3Bucket()
       } catch {
+        // remove invalid data on fail
+        resetAwsCredentials()
+        resetDownloadOptions()
         console.log(
           'There was an error while attempting to download due to invalid inputs. Please check your inputs and try again.'
         )
@@ -41,6 +48,9 @@ export const start = async () => {
       try {
         await uploadToS3Bucket()
       } catch {
+        // remove invalid data on fail
+        resetAwsCredentials()
+        resetUploadOptions()
         console.log(
           'There was an error while attempting to upload due to invalid inputs. Please check your inputs and try again.'
         )

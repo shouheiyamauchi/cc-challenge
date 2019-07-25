@@ -6,7 +6,7 @@ import { getAllBucketContents } from '../../lib/helpers/aws'
 
 import { FileTransferInterface } from './'
 
-export const generateFileDownloadObjects = async (
+export const generateS3FileDownloadObjects = async (
   s3: AWS.S3,
   options: {
     bucketName: string
@@ -18,11 +18,11 @@ export const generateFileDownloadObjects = async (
   const s3Objects = await getAllBucketContents(s3, bucketName)
   return s3Objects.map((s3Object) => ({
     id: s3Object.Key,
-    transfer: new FileDownload(s3, { bucketName, s3Object }, fs)
+    transfer: new S3FileDownload(s3, { bucketName, s3Object }, fs)
   }))
 }
 
-export default class FileDownload implements FileTransferInterface {
+export default class S3FileDownload implements FileTransferInterface {
   private s3Object: AWS.S3.Object
   private bucketName: string
   private downloadRequest: AWS.Request<AWS.S3.GetObjectOutput, AWS.AWSError>

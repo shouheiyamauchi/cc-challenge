@@ -12,8 +12,8 @@ import sessionValues, {
 import ConcurrentFileTransfer, {
   displayProgress
 } from './lib/ConcurrentFileTransfer'
-import { generateFileDownloadObjects } from './lib/FileTransfer/FileDownload'
-import { generateFileUploadObjects } from './lib/FileTransfer/FileUpload'
+import { generateS3FileDownloadObjects } from './lib/FileTransfer/S3FileDownload'
+import { generateS3FileUploadObjects } from './lib/FileTransfer/S3FileUpload'
 import {
   askUploadDownloadedFolder,
   askUseSameCredentials,
@@ -92,7 +92,7 @@ const downloadS3Bucket = async () => {
 
   const { bucketName } = sessionValues.downloadOptions
 
-  const fileDownloadObjects = await generateFileDownloadObjects(
+  const s3FileDownloadObjects = await generateS3FileDownloadObjects(
     s3,
     { bucketName },
     fs
@@ -101,7 +101,7 @@ const downloadS3Bucket = async () => {
   const { concurrentTransfers } = await getConcurrentTransferNo()
 
   const concurrentDownload = new ConcurrentFileTransfer(
-    fileDownloadObjects,
+    s3FileDownloadObjects,
     concurrentTransfers
   )
 
@@ -144,7 +144,7 @@ const uploadToS3Bucket = async () => {
   sessionValues.uploadOptions.destBucketName = uploadOptions.destBucketName
   sessionValues.uploadOptions.kmsKeyId = uploadOptions.kmsKeyId
 
-  const fileUploadObjects = await generateFileUploadObjects(
+  const s3FileUploadObjects = await generateS3FileUploadObjects(
     s3,
     sessionValues.uploadOptions,
     glob,
@@ -154,7 +154,7 @@ const uploadToS3Bucket = async () => {
   const { concurrentTransfers } = await getConcurrentTransferNo()
 
   const concurrentUpload = new ConcurrentFileTransfer(
-    fileUploadObjects,
+    s3FileUploadObjects,
     concurrentTransfers
   )
 

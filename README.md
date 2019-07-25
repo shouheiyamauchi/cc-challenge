@@ -42,7 +42,7 @@ $ npm run build:start
 - an example of this being the AWS SDK S3 mock (`src/test/mocks/S3.ts`) allowing for testing of the FileTransfer classes by simulating emitting events for download progress and completion
 
 ### `FileTransfer` Interface
-- interface which is implemented by FileDownload and FileUpload which are responsible for:
+- interface which is implemented by S3FileDownload and S3FileUpload which are responsible for:
     - downloading from/uploading to S3 buckets
     - displaying status of progress
 - an interface which is compatible to be implemented virtually by any class connecting to an API/interface to download/upload

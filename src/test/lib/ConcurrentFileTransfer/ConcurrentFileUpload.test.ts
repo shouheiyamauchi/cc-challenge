@@ -3,17 +3,17 @@ import chaiAsPromised from 'chai-as-promised'
 
 import config from '../../../config'
 import ConcurrentFileTransfer from '../../../lib/ConcurrentFileTransfer'
-import FileUpload from '../../../lib/FileTransfer/FileUpload'
+import S3FileUpload from '../../../lib/FileTransfer/S3FileUpload'
 import { flushAsyncFn } from '../../helpers/promise'
 import fsMock from '../../mocks/fs'
 import S3Mock, { mockS3RequestId } from '../../mocks/S3'
 
 chai.use(chaiAsPromised)
 
-describe('ConcurrentFileUpload', () => {
+describe('ConcurrentS3FileUpload', () => {
   describe('without maxConcurrentUploads option', () => {
     let s3: S3Mock
-    let concurrentFileUpload: ConcurrentFileTransfer
+    let concurrentS3FileUpload: ConcurrentFileTransfer
     const destBucketName = 'mockBucket'
     const srcDirectory = 'somewhere'
     const mockFiles = ['1', '2', '3', '4', '5'].map(
@@ -22,9 +22,9 @@ describe('ConcurrentFileUpload', () => {
 
     beforeEach(() => {
       s3 = new S3Mock()
-      const fileUploadObjects = mockFiles.map((srcFilePath) => ({
+      const s3FileUploadObjects = mockFiles.map((srcFilePath) => ({
         id: srcFilePath,
-        transfer: new FileUpload(
+        transfer: new S3FileUpload(
           s3 as any,
           {
             destBucketName,
@@ -37,13 +37,13 @@ describe('ConcurrentFileUpload', () => {
         )
       }))
 
-      concurrentFileUpload = new ConcurrentFileTransfer(fileUploadObjects)
+      concurrentS3FileUpload = new ConcurrentFileTransfer(s3FileUploadObjects)
     })
 
     it('by default only 4 concurrent uploads will happen', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(4)
       expect(Boolean(stats[mockFiles[0]])).to.equal(true)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -53,14 +53,14 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('when an upload finishes later ones in the queue will start', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '1'))
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(4)
       expect(Boolean(stats[mockFiles[0]])).to.equal(false)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -70,14 +70,14 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('whichever upload finishes first will be replaced by pending ones in the queue', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '3'))
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(4)
       expect(Boolean(stats[mockFiles[0]])).to.equal(true)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -87,7 +87,7 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('stats will be empty once all uploads have finished', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '1'))
@@ -102,7 +102,7 @@ describe('ConcurrentFileUpload', () => {
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(0)
       expect(Boolean(stats[mockFiles[0]])).to.equal(false)
       expect(Boolean(stats[mockFiles[1]])).to.equal(false)
@@ -114,7 +114,7 @@ describe('ConcurrentFileUpload', () => {
 
   describe('with maxConcurrentUploads option', () => {
     let s3: S3Mock
-    let concurrentFileUpload: ConcurrentFileTransfer
+    let concurrentS3FileUpload: ConcurrentFileTransfer
     const destBucketName = 'mockBucket'
     const srcDirectory = 'somewhere'
     const mockFiles = ['1', '2', '3', '4', '5', '6', '7', '8'].map(
@@ -124,9 +124,9 @@ describe('ConcurrentFileUpload', () => {
 
     beforeEach(() => {
       s3 = new S3Mock()
-      const fileUploadObjects = mockFiles.map((srcFilePath) => ({
+      const s3FileUploadObjects = mockFiles.map((srcFilePath) => ({
         id: srcFilePath,
-        transfer: new FileUpload(
+        transfer: new S3FileUpload(
           s3 as any,
           {
             destBucketName,
@@ -139,16 +139,16 @@ describe('ConcurrentFileUpload', () => {
         )
       }))
 
-      concurrentFileUpload = new ConcurrentFileTransfer(
-        fileUploadObjects,
+      concurrentS3FileUpload = new ConcurrentFileTransfer(
+        s3FileUploadObjects,
         maxConcurrentUploads
       )
     })
 
     it('concurrent uploads as per set in constructor will happen', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(maxConcurrentUploads)
       expect(Boolean(stats[mockFiles[0]])).to.equal(true)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -161,14 +161,14 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('when an upload finishes later ones in the queue will start', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '1'))
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(maxConcurrentUploads)
       expect(Boolean(stats[mockFiles[0]])).to.equal(false)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -181,14 +181,14 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('whichever upload finishes first will be replaced by pending ones in the queue', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '3'))
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(maxConcurrentUploads)
       expect(Boolean(stats[mockFiles[0]])).to.equal(true)
       expect(Boolean(stats[mockFiles[1]])).to.equal(true)
@@ -201,7 +201,7 @@ describe('ConcurrentFileUpload', () => {
     })
 
     it('stats will be empty once all uploads have finished', async () => {
-      concurrentFileUpload.start()
+      concurrentS3FileUpload.start()
 
       await flushAsyncFn()
       s3.emitUploadSendEvent(mockS3RequestId(destBucketName, '1'))
@@ -222,7 +222,7 @@ describe('ConcurrentFileUpload', () => {
 
       await flushAsyncFn()
 
-      const stats = concurrentFileUpload.getStats()
+      const stats = concurrentS3FileUpload.getStats()
       expect(Object.keys(stats)).to.have.lengthOf(0)
       expect(Boolean(stats[mockFiles[0]])).to.equal(false)
       expect(Boolean(stats[mockFiles[1]])).to.equal(false)

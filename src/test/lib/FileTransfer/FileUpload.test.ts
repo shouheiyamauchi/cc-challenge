@@ -1,18 +1,18 @@
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-import FileUpload from '../../../lib/FileTransfer/FileUpload'
+import S3FileUpload from '../../../lib/FileTransfer/S3FileUpload'
 import { flushAsyncFn } from '../../helpers/promise'
 import fsMock from '../../mocks/fs'
 import S3Mock, { mockS3RequestId } from '../../mocks/S3'
 
 chai.use(chaiAsPromised)
 
-describe('FileUpload', () => {
+describe('S3FileUpload', () => {
   let s3: S3Mock
   let destBucketName: string
   let destFilePath: string
-  let fileUpload: FileUpload
+  let s3FileUpload: S3FileUpload
 
   beforeEach(() => {
     s3 = new S3Mock()
@@ -26,11 +26,11 @@ describe('FileUpload', () => {
       }
     }
 
-    fileUpload = new FileUpload(s3 as any, options as any, fsMock as any)
+    s3FileUpload = new S3FileUpload(s3 as any, options as any, fsMock as any)
   })
 
   it("upload promise resolves on stream 'finish' event being emitted", async () => {
-    const uploadPromise = fileUpload.start()
+    const uploadPromise = s3FileUpload.start()
 
     await flushAsyncFn()
     s3.emitUploadSendEvent(mockS3RequestId(destBucketName, destFilePath))
@@ -39,7 +39,7 @@ describe('FileUpload', () => {
   })
 
   it('updates bytesLoaded as chunks are uploaded', async () => {
-    fileUpload.start()
+    s3FileUpload.start()
 
     await flushAsyncFn()
     s3.emitUploadEvent(
@@ -48,11 +48,11 @@ describe('FileUpload', () => {
       { loaded: 50 }
     )
 
-    expect(fileUpload.getStats().bytesLoaded).to.equal(50)
+    expect(s3FileUpload.getStats().bytesLoaded).to.equal(50)
   })
 
   it('generates correct stats', async () => {
-    fileUpload.start()
+    s3FileUpload.start()
 
     await flushAsyncFn()
     s3.emitUploadEvent(
@@ -61,8 +61,8 @@ describe('FileUpload', () => {
       { loaded: 50 }
     )
 
-    expect(fileUpload.getStats().bytesLoaded).to.equal(50)
-    expect(fileUpload.getStats().percentProgress).to.equal(5)
-    expect(fileUpload.getStats().totalSize).to.equal(1000)
+    expect(s3FileUpload.getStats().bytesLoaded).to.equal(50)
+    expect(s3FileUpload.getStats().percentProgress).to.equal(5)
+    expect(s3FileUpload.getStats().totalSize).to.equal(1000)
   })
 })

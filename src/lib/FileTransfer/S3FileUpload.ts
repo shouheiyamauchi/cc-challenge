@@ -6,7 +6,7 @@ import { globToPromise } from '../../lib/helpers/glob'
 
 import { FileTransferInterface } from './'
 
-export const generateFileUploadObjects = async (
+export const generateS3FileUploadObjects = async (
   s3: AWS.S3,
   options: {
     destBucketName: string
@@ -25,7 +25,7 @@ export const generateFileUploadObjects = async (
 
   return srcFilePaths.map((srcFilePath) => ({
     id: srcFilePath,
-    transfer: new FileUpload(
+    transfer: new S3FileUpload(
       s3,
       {
         destBucketName,
@@ -40,7 +40,7 @@ export const generateFileUploadObjects = async (
   }))
 }
 
-export default class FileUpload implements FileTransferInterface {
+export default class S3FileUpload implements FileTransferInterface {
   private uploadRequestPromise: Promise<AWS.S3.ManagedUpload>
   private bytesLoaded = 0
   private totalSize: number

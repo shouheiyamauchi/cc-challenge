@@ -3,7 +3,6 @@
 - [Features](#features)
 - [Setup](#setup)
 - [Architecture](#architecture)
-- [Flow of Application](#flow-of-application)
 - [Error Handling](#error-handling)
 - [Testing](#testing)
 - [Other Future Improvements](#other-future-improvements)

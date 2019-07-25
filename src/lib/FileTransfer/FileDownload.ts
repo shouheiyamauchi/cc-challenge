@@ -2,8 +2,25 @@ import AWS from 'aws-sdk'
 import fsExtra from 'fs-extra'
 
 import config from '../../config'
+import { getAllBucketContents } from '../../lib/helpers/aws'
 
 import { FileTransferInterface } from './'
+
+export const generateFileDownloadObjects = async (
+  s3: AWS.S3,
+  options: {
+    bucketName: string
+  },
+  fs: typeof fsExtra
+) => {
+  const { bucketName } = options
+
+  const s3Objects = await getAllBucketContents(s3, bucketName)
+  return s3Objects.map((s3Object) => ({
+    id: s3Object.Key,
+    transfer: new FileDownload(s3, { bucketName, s3Object }, fs)
+  }))
+}
 
 export default class FileDownload implements FileTransferInterface {
   private s3Object: AWS.S3.Object

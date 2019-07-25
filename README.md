@@ -11,7 +11,7 @@
 ## Features
 - users are give the choice to download from or upload to an S3 bucket via an easy-to-use CLI
 - the ability to adjust the max concurrent file transfers happening at once (defaults to 4)
-- uploads will be encrypted using an AWS CMK which you provide
+- uploads will be encrypted using an AWS CMK key ID which you provide
 
 ## Setup
 

@@ -1,6 +1,44 @@
 import fsExtra from 'fs-extra'
+import globLib from 'glob'
+
+import config from '../../config'
+import { globToPromise } from '../../lib/helpers/glob'
 
 import { FileTransferInterface } from './'
+
+export const generateFileUploadObjects = async (
+  s3: AWS.S3,
+  options: {
+    destBucketName: string
+    srcDirectory: string
+    kmsKeyId: string
+  },
+  glob: typeof globLib,
+  fs: typeof fsExtra
+) => {
+  const { destBucketName, kmsKeyId, srcDirectory } = options
+
+  const srcFilePaths = await globToPromise(glob)(
+    `${config.downloadPath}/${srcDirectory}/**/*`,
+    { nodir: true }
+  )
+
+  return srcFilePaths.map((srcFilePath) => ({
+    id: srcFilePath,
+    transfer: new FileUpload(
+      s3,
+      {
+        destBucketName,
+        destFilePath: srcFilePath.substring(
+          `${config.downloadPath}/${srcDirectory}/`.length
+        ),
+        kmsKeyId,
+        srcFilePath
+      },
+      fs
+    )
+  }))
+}
 
 export default class FileUpload implements FileTransferInterface {
   private uploadRequestPromise: Promise<AWS.S3.ManagedUpload>

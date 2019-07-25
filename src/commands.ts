@@ -10,10 +10,10 @@ import sessionValues, {
   resetUploadOptions
 } from './config/sessionValues'
 import ConcurrentFileTransfer, {
-  displayProgress,
-  generateFileDownloadObjects,
-  generateFileUploadObjects
+  displayProgress
 } from './lib/ConcurrentFileTransfer'
+import { generateFileDownloadObjects } from './lib/FileTransfer/FileDownload'
+import { generateFileUploadObjects } from './lib/FileTransfer/FileUpload'
 import {
   askUploadDownloadedFolder,
   askUseSameCredentials,

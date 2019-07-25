@@ -1,13 +1,7 @@
-import fsExtra from 'fs-extra'
-import globLib from 'glob'
 import logUpdate from 'log-update'
 import pLimit from 'p-limit'
 
 import config from '../config'
-import FileDownload from '../lib/FileTransfer/FileDownload'
-import FileUpload from '../lib/FileTransfer/FileUpload'
-import { getAllBucketContents } from '../lib/helpers/aws'
-import { globToPromise } from '../lib/helpers/glob'
 
 import { FileTransferInterface, FileTransferStats } from './FileTransfer'
 
@@ -23,56 +17,6 @@ export interface ConcurrentFileTransferInterface {
 interface FileTransferObject {
   id: string
   transfer: FileTransferInterface
-}
-
-export const generateFileDownloadObjects = async (
-  s3: AWS.S3,
-  options: {
-    bucketName: string
-  },
-  fs: typeof fsExtra
-) => {
-  const { bucketName } = options
-
-  const s3Objects = await getAllBucketContents(s3, bucketName)
-  return s3Objects.map((s3Object) => ({
-    id: s3Object.Key,
-    transfer: new FileDownload(s3, { bucketName, s3Object }, fs)
-  }))
-}
-
-export const generateFileUploadObjects = async (
-  s3: AWS.S3,
-  options: {
-    destBucketName: string
-    srcDirectory: string
-    kmsKeyId: string
-  },
-  glob: typeof globLib,
-  fs: typeof fsExtra
-) => {
-  const { destBucketName, kmsKeyId, srcDirectory } = options
-
-  const srcFilePaths = await globToPromise(glob)(
-    `${config.downloadPath}/${srcDirectory}/**/*`,
-    { nodir: true }
-  )
-
-  return srcFilePaths.map((srcFilePath) => ({
-    id: srcFilePath,
-    transfer: new FileUpload(
-      s3,
-      {
-        destBucketName,
-        destFilePath: srcFilePath.substring(
-          `${config.downloadPath}/${srcDirectory}/`.length
-        ),
-        kmsKeyId,
-        srcFilePath
-      },
-      fs
-    )
-  }))
 }
 
 export const displayProgress = (

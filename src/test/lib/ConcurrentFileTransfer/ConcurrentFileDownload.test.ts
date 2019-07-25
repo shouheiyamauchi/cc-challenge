@@ -1,7 +1,8 @@
 import chai, { expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
-import ConcurrentFileDownload from '../../../lib/ConcurrentFileTransfer/ConcurrentFileDownload'
+import ConcurrentFileTransfer from '../../../lib/ConcurrentFileTransfer'
+import FileDownload from '../../../lib/FileTransfer/FileDownload'
 import { flushAsyncFn } from '../../helpers/promise'
 import fsMock from '../../mocks/fs'
 import S3Mock, { mockS3RequestId } from '../../mocks/S3'
@@ -11,26 +12,21 @@ chai.use(chaiAsPromised)
 describe('ConcurrentFileDownload', () => {
   describe('without maxConcurrentDownloads option', () => {
     let s3: S3Mock
-    let concurrentFileDownload: ConcurrentFileDownload
+    let concurrentFileDownload: ConcurrentFileTransfer
     const bucketName = 'mockBucket'
     const keys = ['1', '2', '3', '4', '5']
 
-    beforeEach(() => {
+    beforeEach(async () => {
       s3 = new S3Mock()
-      const s3Objects = keys.map((key) => ({
-        Key: key,
-        Size: 1000
+      const fileDownloadObjects = keys.map((key) => ({
+        id: key,
+        transfer: new FileDownload(
+          s3 as any,
+          { bucketName, s3Object: { Key: key, Size: 1000 } } as any,
+          fsMock as any
+        )
       }))
-      const options = {
-        bucketName,
-        s3Objects
-      }
-
-      concurrentFileDownload = new ConcurrentFileDownload(
-        s3 as any,
-        options as any,
-        fsMock as any
-      )
+      concurrentFileDownload = new ConcurrentFileTransfer(fileDownloadObjects)
     })
 
     it('by default only 4 concurrent downloads will happen', async () => {
@@ -107,27 +103,24 @@ describe('ConcurrentFileDownload', () => {
 
   describe('with maxConcurrentDownloads option', () => {
     let s3: S3Mock
-    let concurrentFileDownload: ConcurrentFileDownload
+    let concurrentFileDownload: ConcurrentFileTransfer
     const bucketName = 'mockBucket'
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8']
     const maxConcurrentDownloads = 5
 
     beforeEach(() => {
       s3 = new S3Mock()
-      const s3Objects = keys.map((key) => ({
-        Key: key,
-        Size: 1000
+      const fileDownloadObjects = keys.map((key) => ({
+        id: key,
+        transfer: new FileDownload(
+          s3 as any,
+          { bucketName, s3Object: { Key: key, Size: 1000 } } as any,
+          fsMock as any
+        )
       }))
-      const options = {
-        bucketName,
-        maxConcurrentDownloads,
-        s3Objects
-      }
-
-      concurrentFileDownload = new ConcurrentFileDownload(
-        s3 as any,
-        options as any,
-        fsMock as any
+      concurrentFileDownload = new ConcurrentFileTransfer(
+        fileDownloadObjects,
+        maxConcurrentDownloads
       )
     })
 

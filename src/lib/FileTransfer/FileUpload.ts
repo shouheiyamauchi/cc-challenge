@@ -28,7 +28,6 @@ export default class FileUpload implements FileTransferInterface {
           Body: data,
           Bucket: destBucketName,
           Key: destFilePath,
-          // https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html#API_Encrypt_RequestSyntax
           SSEKMSKeyId: kmsKeyId,
           ServerSideEncryption: 'aws:kms'
         })

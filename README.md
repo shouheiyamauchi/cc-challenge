@@ -76,3 +76,4 @@ $ npm run build:start
   - download path
   - ACL
   - ability to upload without KMS encryption
+- ability to clear out directories which have been uploaded

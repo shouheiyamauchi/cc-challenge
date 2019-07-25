@@ -130,3 +130,17 @@ export const getUploadOptions = () =>
       validate: (value) => Boolean(value) || 'CMK key ID is required'
     }
   ])
+
+export const getConcurrentTransferNo = () =>
+  inquirer.prompt<{
+    concurrentTransfers: number
+  }>([
+    {
+      default: 4,
+      message:
+        'Select the number of concurrent file transfers you would like to perform',
+      name: 'concurrentTransfers',
+      type: 'number',
+      validate: (value) => typeof value === 'number' || 'Valid number required'
+    }
+  ])

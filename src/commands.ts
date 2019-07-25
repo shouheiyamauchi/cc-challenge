@@ -18,6 +18,7 @@ import {
   askUploadDownloadedFolder,
   askUseSameCredentials,
   getAwsCredentials,
+  getConcurrentTransferNo,
   getDownloadbucketName,
   getUploadOptions,
   getUploadSrcDirectory,
@@ -86,6 +87,7 @@ const downloadS3Bucket = async () => {
 
   const downloadOptions = await getDownloadbucketName()
 
+  // persist values for use when uploading
   sessionValues.downloadOptions = downloadOptions
 
   const { bucketName } = sessionValues.downloadOptions
@@ -96,7 +98,12 @@ const downloadS3Bucket = async () => {
     fs
   )
 
-  const concurrentDownload = new ConcurrentFileTransfer(fileDownloadObjects)
+  const { concurrentTransfers } = await getConcurrentTransferNo()
+
+  const concurrentDownload = new ConcurrentFileTransfer(
+    fileDownloadObjects,
+    concurrentTransfers
+  )
 
   const displayProgressInterval = displayProgress(concurrentDownload)
 
@@ -144,13 +151,18 @@ const uploadToS3Bucket = async () => {
     fs
   )
 
-  const concurrentDownload = new ConcurrentFileTransfer(fileUploadObjects)
+  const { concurrentTransfers } = await getConcurrentTransferNo()
 
-  const displayProgressInterval = displayProgress(concurrentDownload)
+  const concurrentUpload = new ConcurrentFileTransfer(
+    fileUploadObjects,
+    concurrentTransfers
+  )
+
+  const displayProgressInterval = displayProgress(concurrentUpload)
 
   return new Promise((resolve) => {
     console.log('Upload Progress:')
-    concurrentDownload.start().then(() => {
+    concurrentUpload.start().then(() => {
       clearInterval(displayProgressInterval)
       logUpdate.clear()
       console.log(`All files uploaded to AWS bucket: ${bucketName}`)

@@ -3,11 +3,13 @@ import globLib from 'glob'
 import logUpdate from 'log-update'
 import pLimit from 'p-limit'
 
-import config from '../../config'
-import FileDownload from '../../lib/FileTransfer/FileDownload'
-import FileUpload from '../../lib/FileTransfer/FileUpload'
-import { getAllBucketContents } from '../../lib/helpers/aws'
-import { FileTransferInterface, FileTransferStats } from '../FileTransfer'
+import config from '../config'
+import FileDownload from '../lib/FileTransfer/FileDownload'
+import FileUpload from '../lib/FileTransfer/FileUpload'
+import { getAllBucketContents } from '../lib/helpers/aws'
+import { globToPromise } from '../lib/helpers/glob'
+
+import { FileTransferInterface, FileTransferStats } from './FileTransfer'
 
 export interface CurrentFileTransferStats {
   [key: string]: FileTransferStats
@@ -71,21 +73,6 @@ export const generateFileUploadObjects = async (
       fs
     )
   }))
-}
-
-const globToPromise = (glob: typeof globLib) => async (
-  dir: any,
-  opts: any
-): Promise<string[]> => {
-  return new Promise((resolve, reject) =>
-    glob(dir, opts, (err, files) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(files)
-      }
-    })
-  )
 }
 
 export const displayProgress = (

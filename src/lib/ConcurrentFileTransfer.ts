@@ -98,7 +98,7 @@ export default class ConcurrentFileTransfer {
 
   public constructor(
     fileTransfers: FileTransferObject[],
-    maxConcurrentDownloads: number = config.defaultConcurrentDownloads
+    maxConcurrentDownloads: number = config.defaultConcurrentTransfers
   ) {
     this.fileTransfers = fileTransfers
     this.maxConcurrentDownloads = maxConcurrentDownloads

@@ -15,7 +15,7 @@
     "test:coverage": "nyc npm run test"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
+    "*.ts": [
       "npm run prettier:fix",
       "git add"
     ]

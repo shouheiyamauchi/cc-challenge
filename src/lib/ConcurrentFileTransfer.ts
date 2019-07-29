@@ -3,25 +3,7 @@ import pLimit from 'p-limit'
 
 import config from '../config'
 
-import { FileTransferInterface, FileTransferStats } from './FileTransfer'
-
-export interface CurrentFileTransferStats {
-  [key: string]: FileTransferStats
-}
-
-export interface ConcurrentFileTransferInterface {
-  start: () => Promise<void[]>
-  getStats: () => CurrentFileTransferStats
-}
-
-interface FileTransferObject {
-  id: string
-  transfer: FileTransferInterface
-}
-
-export const displayProgress = (
-  concurrentFileTransfer: ConcurrentFileTransferInterface
-) => {
+export const displayProgress = (concurrentFileTransfer) => {
   return setInterval(() => {
     const transfers = concurrentFileTransfer.getStats()
     const formatted = Object.keys(transfers).map((key, index) => {
@@ -34,21 +16,16 @@ export const displayProgress = (
 }
 
 export default class ConcurrentFileTransfer {
-  private fileTransfers: FileTransferObject[]
-  private activeTransfers: {
-    [key: string]: FileTransferInterface
-  } = {}
-  private maxConcurrentDownloads: number
-
-  public constructor(
-    fileTransfers: FileTransferObject[],
-    maxConcurrentDownloads: number = config.defaultConcurrentTransfers
+  constructor(
+    fileTransfers,
+    maxConcurrentDownloads = config.defaultConcurrentTransfers
   ) {
     this.fileTransfers = fileTransfers
     this.maxConcurrentDownloads = maxConcurrentDownloads
+    this.activeTransfers = {}
   }
 
-  public start = async (): Promise<void[]> => {
+  async start() {
     const limit = pLimit(this.maxConcurrentDownloads)
 
     return Promise.all(
@@ -67,8 +44,8 @@ export default class ConcurrentFileTransfer {
     )
   }
 
-  public getStats = () => {
-    const stats: CurrentFileTransferStats = {}
+  getStats() {
+    const stats = {}
 
     for (const key of Object.keys(this.activeTransfers)) {
       stats[key] = this.activeTransfers[key].getStats()

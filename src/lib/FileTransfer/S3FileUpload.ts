@@ -4,18 +4,7 @@ import globLib from 'glob'
 import config from '../../config'
 import { globToPromise } from '../../lib/helpers/glob'
 
-import { FileTransferInterface } from './'
-
-export const generateS3FileUploadObjects = async (
-  s3: AWS.S3,
-  options: {
-    destBucketName: string
-    srcDirectory: string
-    kmsKeyId: string
-  },
-  glob: typeof globLib,
-  fs: typeof fsExtra
-) => {
+export const generateS3FileUploadObjects = async (s3, options, glob, fs) => {
   const { destBucketName, kmsKeyId, srcDirectory } = options
 
   const srcFilePaths = await globToPromise(glob)(
@@ -40,21 +29,8 @@ export const generateS3FileUploadObjects = async (
   }))
 }
 
-export default class S3FileUpload implements FileTransferInterface {
-  private uploadRequestPromise: Promise<AWS.S3.ManagedUpload>
-  private bytesLoaded = 0
-  private totalSize: number
-
-  public constructor(
-    s3: AWS.S3,
-    options: {
-      destBucketName: string
-      srcFilePath: string
-      destFilePath: string
-      kmsKeyId: string
-    },
-    fs: typeof fsExtra
-  ) {
+export default class S3FileUpload {
+  constructor(s3, options, fs) {
     const { destBucketName, srcFilePath, destFilePath, kmsKeyId } = options
 
     this.uploadRequestPromise = new Promise(async (resolve) => {
@@ -72,9 +48,10 @@ export default class S3FileUpload implements FileTransferInterface {
       )
     })
     this.totalSize = fs.statSync(srcFilePath).size
+    this.bytesLoaded = 0
   }
 
-  public start = async (): Promise<void> => {
+  async start() {
     const uploadRequest = await this.uploadRequestPromise
 
     uploadRequest.on('httpUploadProgress', (progress) => {
@@ -86,9 +63,11 @@ export default class S3FileUpload implements FileTransferInterface {
     })
   }
 
-  public getStats = () => ({
-    bytesLoaded: this.bytesLoaded,
-    percentProgress: (this.bytesLoaded / this.totalSize) * 100,
-    totalSize: this.totalSize
-  })
+  getStats() {
+    return {
+      bytesLoaded: this.bytesLoaded,
+      percentProgress: (this.bytesLoaded / this.totalSize) * 100,
+      totalSize: this.totalSize
+    }
+  }
 }
